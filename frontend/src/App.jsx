@@ -8,6 +8,7 @@ import AiBrain from './pages/AiBrain';
 import Jobs from './pages/Jobs';
 import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
+import PageTransition from './components/PageTransition';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -40,40 +41,42 @@ function App() {
 
         {/* Content Viewport Container */}
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
-          <Routes>
-            {/* Unprotected Route: Auth Panel */}
-            <Route 
-              path="/login" 
-              element={!user ? <Login /> : <Navigate to="/" />} 
-            />
+          <PageTransition>
+            <Routes>
+              {/* Unprotected Route: Auth Panel */}
+              <Route 
+                path="/login" 
+                element={!user ? <Login /> : <Navigate to="/" />} 
+              />
 
-            {/* Protected Route: Main Dashboard (Alumni Directory) */}
-            <Route 
-              path="/" 
-              element={user ? (user.role === 'Admin' ? <Navigate to="/admin" /> : <Directory user={user} />) : <Navigate to="/login" />} 
-            />
+              {/* Protected Route: Main Dashboard (Alumni Directory) */}
+              <Route 
+                path="/" 
+                element={user ? (user.role === 'Admin' ? <Navigate to="/admin" /> : <Directory user={user} />) : <Navigate to="/login" />} 
+              />
 
-            {/* Protected Route: Administrator Control Center */}
-            <Route 
-              path="/admin" 
-              element={user && user.role === 'Admin' ? <AdminDashboard user={user} /> : <Navigate to="/login" />} 
-            />
+              {/* Protected Route: Administrator Control Center */}
+              <Route 
+                path="/admin" 
+                element={user && user.role === 'Admin' ? <AdminDashboard user={user} /> : <Navigate to="/login" />} 
+              />
 
-            {/* Protected Route: AI Resume Brain Optimization Hub */}
-            <Route 
-              path="/ai-brain" 
-              element={user ? <AiBrain user={user} /> : <Navigate to="/login" />} 
-            />
+              {/* Protected Route: AI Resume Brain Optimization Hub */}
+              <Route 
+                path="/ai-brain" 
+                element={user ? <AiBrain user={user} /> : <Navigate to="/login" />} 
+              />
 
-            {/* Protected Route: Placement/Referral Job Board */}
-            <Route 
-              path="/jobs" 
-              element={user ? <Jobs user={user} /> : <Navigate to="/login" />} 
-            />
+              {/* Protected Route: Placement/Referral Job Board */}
+              <Route 
+                path="/jobs" 
+                element={user ? <Jobs user={user} /> : <Navigate to="/login" />} 
+              />
 
-            {/* Catch-all Fallback Route redirecting users to Dashboard */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+              {/* Catch-all Fallback Route redirecting users to Dashboard */}
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </PageTransition>
         </main>
       </div>
     </Router>
