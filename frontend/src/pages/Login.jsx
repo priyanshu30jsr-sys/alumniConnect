@@ -37,12 +37,14 @@ const Login = () => {
       return;
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     let endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-    let payload = mode === 'register' ? { fullName, email, password, role } : { email, password };
+    let payload = mode === 'register' ? { fullName, email: normalizedEmail, password, role } : { email: normalizedEmail, password };
     
     if (mode === 'forgot') {
       endpoint = '/api/auth/forgot-password';
-      payload = { email, newPassword: password };
+      payload = { email: normalizedEmail, newPassword: password };
     }
 
     try {

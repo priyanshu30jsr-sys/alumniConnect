@@ -43,14 +43,25 @@ const Navbar = ({ user }) => {
             Directory Leaderboard
           </Link>
 
-          <Link 
-            to="/jobs" 
-            className={`text-sm font-medium transition-colors ${
-              isActive('/jobs') ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {user.role === 'Alumni' ? 'Manage Referrals' : 'Opportunity Board'}
-          </Link>
+          {user.role === 'Admin' ? (
+            <Link 
+              to="/admin" 
+              className={`text-sm font-medium transition-colors ${
+                isActive('/admin') ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Admin Hub
+            </Link>
+          ) : (
+            <Link 
+              to="/jobs" 
+              className={`text-sm font-medium transition-colors ${
+                isActive('/jobs') ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {user.role === 'Alumni' ? 'Manage Referrals' : 'Opportunity Board'}
+            </Link>
+          )}
 
           {/* Render the AI Assistant option exclusively for current student users */}
           {user.role === 'Student' && (

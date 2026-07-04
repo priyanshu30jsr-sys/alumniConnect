@@ -9,9 +9,10 @@ const User = require('../models/User');
 router.post('/register', async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
     // 1. Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: normalizedEmail });
     if (user) {
       return res.status(400).json({ message: 'User already registered with this institutional ID' });
     }
@@ -34,7 +35,7 @@ router.post('/register', async (req, res) => {
 
     // 4. Save User Document
     user = new User({
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role,
       gradYear,
@@ -67,9 +68,10 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
     // 1. Locate User by Email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ message: 'Invalid institutional credentials' });
     }

@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Directory from './pages/Directory';
 import AiBrain from './pages/AiBrain';
 import Jobs from './pages/Jobs';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -49,7 +50,13 @@ function App() {
             {/* Protected Route: Main Dashboard (Alumni Directory) */}
             <Route 
               path="/" 
-              element={user ? <Directory user={user} /> : <Navigate to="/login" />} 
+              element={user ? (user.role === 'Admin' ? <Navigate to="/admin" /> : <Directory user={user} />) : <Navigate to="/login" />} 
+            />
+
+            {/* Protected Route: Administrator Control Center */}
+            <Route 
+              path="/admin" 
+              element={user && user.role === 'Admin' ? <AdminDashboard user={user} /> : <Navigate to="/login" />} 
             />
 
             {/* Protected Route: AI Resume Brain Optimization Hub */}

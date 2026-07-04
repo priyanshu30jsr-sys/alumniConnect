@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const adminRoutes = require('./routes/admin');
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
@@ -19,6 +20,7 @@ app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/admin', adminRoutes);
 
 
 app.get('/', (req, res) => {
