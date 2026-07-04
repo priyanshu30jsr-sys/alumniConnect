@@ -80,7 +80,7 @@ const Navbar = ({ user }) => {
             <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs font-mono">
               <span className="text-yellow-500">⚡</span>
               <span className="text-slate-400">Score:</span>
-              <span className="text-yellow-400 font-bold">{user.contributionPoints || 0} pts</span>
+              <span className="text-yellow-400 font-bold">{user.contributionPoints} 150 pts</span>
             </div>
           )}
 

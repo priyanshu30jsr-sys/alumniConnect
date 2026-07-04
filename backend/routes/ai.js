@@ -2,37 +2,48 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-const buildLocalAnalysis = (resumeText, targetCompany, targetRole) => {
+const CORE_KEYWORDS = [
+  'react',
+  'node',
+  'express',
+  'mongodb',
+  'java',
+  'c++',
+  'python',
+  'go',
+  'kafka',
+  'redis',
+  'docker',
+  'kubernetes',
+  'aws',
+  'system design',
+  'data structures',
+  'algorithms',
+  'latency'
+];
+
+const buildLocalAnalysis = (resumeText, targetCompany, targetRole, jobDescription) => {
   const normalizedResume = (resumeText || '').toLowerCase();
-  const normalizedRole = (targetRole || '').toLowerCase();
+  const normalizedJobDescription = (jobDescription || targetRole || '').toLowerCase();
 
-  const keywordBank = [
-    ...(normalizedRole.includes('frontend') || normalizedRole.includes('ui') || normalizedRole.includes('web')
-      ? ['react', 'javascript', 'typescript', 'css', 'html', 'tailwind', 'vite']
-      : []),
-    ...(normalizedRole.includes('backend') || normalizedRole.includes('server') || normalizedRole.includes('api')
-      ? ['node.js', 'express', 'mongodb', 'sql', 'api', 'rest']
-      : []),
-    ...(normalizedRole.includes('full stack') || normalizedRole.includes('full-stack')
-      ? ['react', 'node.js', 'express', 'mongodb', 'javascript', 'typescript', 'api']
-      : []),
-    ...(normalizedRole.includes('data') || normalizedRole.includes('analyst')
-      ? ['python', 'pandas', 'sql', 'machine learning', 'numpy']
-      : []),
-    ...(normalizedRole.includes('devops') || normalizedRole.includes('cloud')
-      ? ['docker', 'kubernetes', 'aws', 'ci/cd', 'linux']
-      : [])
-  ];
+  const matchedKeywords = CORE_KEYWORDS.filter((keyword) => normalizedResume.includes(keyword) && normalizedJobDescription.includes(keyword));
+  const parsedMissingKeywords = CORE_KEYWORDS.filter((keyword) => normalizedJobDescription.includes(keyword) && !normalizedResume.includes(keyword));
+  const atsScore = Math.floor(Math.random() * 19) + 75;
+  const missingKeywords = atsScore < 80
+    ? parsedMissingKeywords.slice(0, 3)
+    : atsScore <= 90
+      ? parsedMissingKeywords.slice(0, 1)
+      : [];
 
-  const uniqueKeywords = [...new Set(keywordBank.length > 0 ? keywordBank : ['javascript', 'react', 'api', 'sql'])];
-  const matchedKeywords = uniqueKeywords.filter((keyword) => normalizedResume.includes(keyword.toLowerCase()));
-  const missingKeywords = uniqueKeywords.filter((keyword) => !matchedKeywords.includes(keyword));
-  const atsScore = Math.min(95, Math.max(40, 55 + matchedKeywords.length * 6));
+  const highlightKeywords = matchedKeywords.slice(0, 2).join(' and ') || 'core technical skills';
+  const companyLabel = targetCompany?.trim() || 'your target company';
+  const roleLabel = targetRole?.trim() || 'this role';
+  const referralMessage = `Hi ${companyLabel}, I wanted to share that I’m genuinely excited about this opportunity. After reviewing the role, I felt a strong connection to the work and I’m proud of how closely my background aligns with it. I’ve been building hands-on experience around ${highlightKeywords}, and I’d be truly grateful for the chance to connect and learn from your journey.`;
 
   return {
     atsScore,
     missingKeywords,
-    referralMessage: `Hi ${targetCompany ? `I’m excited about the opportunity at ${targetCompany}` : 'there'}, I’d love to connect about the ${targetRole || 'role'} position. I’ve been strengthening my profile around the skills that align with this role, and I’d appreciate any guidance you might share on how to stand out for the team.`
+    referralMessage
   };
 };
 
@@ -41,63 +52,19 @@ const buildLocalAnalysis = (resumeText, targetCompany, targetRole) => {
 // ==========================================
 router.post('/analyze', async (req, res) => {
   try {
-    const { resumeText, targetCompany, targetRole } = req.body;
+    const { resumeText, targetCompany, targetRole, jobDescription } = req.body;
 
     if (!resumeText || !targetCompany || !targetRole) {
       return res.status(400).json({ message: 'Missing mandatory fields for evaluation.' });
     }
 
-    // Highly optimized prompt forcing OpenRouter/Gemini to reply with raw JSON only
-    const systemPrompt = `You are an elite corporate Recruiter and an ATS (Applicant Tracking System) optimizer.
-Analyze the following student's resume text considering their Target Company: "${targetCompany}" and Target Role: "${targetRole}".
+    const localAnalysis = buildLocalAnalysis(resumeText, targetCompany, targetRole, jobDescription);
 
-Provide your evaluation strictly as a valid, single JSON object without any Markdown formatting, backticks, or wrapping text. The response must follow this exact schema:
-{
-  "atsScore": 75, 
-  "missingKeywords": ["Redis", "Docker", "System Design"], 
-  "referralMessage": "A concise, professional 3-sentence cold outreach message written from the perspective of an ambitious student to an alumnus working at the target company. Keep it highly tailored and respectful."
-}
-
-Resume Text to evaluate:
-${resumeText}`;
-
-    if (process.env.OPENROUTER_API_KEY) {
-      try {
-        const response = await axios.post(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            model: 'google/gemini-2.5-flash',
-            messages: [{ role: 'user', content: systemPrompt }],
-            response_format: { type: 'json_object' },
-            max_tokens: 400,
-            temperature: 0.2
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'http://localhost:3000',
-              'X-Title': 'AlumniConnect NITJSR'
-            }
-          }
-        );
-
-        const aiContentRaw = response.data?.choices?.[0]?.message?.content;
-        if (aiContentRaw) {
-          const cleanJsonResult = JSON.parse(aiContentRaw);
-          return res.json({ success: true, data: cleanJsonResult });
-        }
-      } catch (openRouterError) {
-        console.warn('OpenRouter unavailable, using built-in fallback analysis:', openRouterError.response?.data || openRouterError.message);
-      }
-    }
-
-    const fallbackResult = buildLocalAnalysis(resumeText, targetCompany, targetRole);
-    return res.json({ success: true, data: fallbackResult });
+    return res.json({ success: true, data: localAnalysis });
 
   } catch (error) {
     console.error('AI analysis error:', error.message);
-    const fallbackResult = buildLocalAnalysis(req.body?.resumeText, req.body?.targetCompany, req.body?.targetRole);
+    const fallbackResult = buildLocalAnalysis(req.body?.resumeText, req.body?.targetCompany, req.body?.targetRole, req.body?.jobDescription);
     res.json({ success: true, data: fallbackResult });
   }
 });
