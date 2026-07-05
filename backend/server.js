@@ -25,15 +25,17 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 🚀 ADDED FOR DEPLOYMENT (DO NOT REMOVE)
-// Serves built frontend build assets safely if requested
+// 🚀 CLEAN DEPLOYMENT FALLBACK (SAFE FOR EXPRESS 5)
+// ==========================================
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  // FIX: Updated old '*' syntax to newer '(.*)' syntax for Express 5 compatibility
-  app.get('(.*)', (req, res) => {
+  
+  // This uses a clean, compliant named wildcard variable that Express v5 loves
+  app.get('/:splat*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
   });
 }
+// ==========================================
 
 // Port configuration
 const PORT = process.env.PORT || 5000;
