@@ -20,22 +20,10 @@ app.use('/api/ai', require('./routes/ai'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', adminRoutes);
 
+// Main landing status route for Render to healthcheck cleanly
 app.get('/', (req, res) => {
   res.send('AlumniConnect Backend Engine is Running...');
 });
-
-// ==========================================
-// 🚀 CLEAN DEPLOYMENT FALLBACK (SAFE FOR EXPRESS 5)
-// ==========================================
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  // This uses a clean, compliant named wildcard variable that Express v5 loves
-  app.get('/:splat*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
-  });
-}
-// ==========================================
 
 // Port configuration
 const PORT = process.env.PORT || 5000;
